@@ -31,7 +31,7 @@ Aucune installation nécessaire :
 
 ```bash
 git clone https://github.com/gwalabsbj/veilledashboard.git
-cd veille-dashboard
+cd veilledashboard
 ```
 
 Puis ouvre simplement `index.html` dans ton navigateur — ou héberge-le gratuitement sur **GitHub Pages** :
