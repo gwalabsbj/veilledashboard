@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>&lt;Dylan/&gt; // Veille</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0A0F1A;
+    --panel:#111A2B;
+    --line:#1E2A42;
+    --line-soft:#182238;
+    --text:#E7ECF5;
+    --muted:#7E8CA6;
+    --muted-dim:#4E5A73;
+    --amber:#FFB238;
+    --cyan:#45C7E0;
+    --red:#FF5D5D;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--void);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  body{
+    background-image:
+      radial-gradient(ellipse 800px 400px at 50% -10%, rgba(69,199,224,0.08), transparent),
+      radial-gradient(ellipse 600px 300px at 100% 0%, rgba(255,178,56,0.05), transparent);
+  }
+  .wrap{max-width:1200px; margin:0 auto; padding:28px 20px 60px;}
+
+  /* ---- Header ---- */
+  header{
+    position:relative;
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px 24px;
+    margin-bottom:22px;
+    background:linear-gradient(180deg, var(--panel), #0D1526);
+  }
+  .sweep{
+    position:absolute; top:50%; left:50%;
+    width:900px; height:900px;
+    margin:-450px 0 0 -450px;
+    background:conic-gradient(from 0deg, transparent 0deg, rgba(69,199,224,0.10) 25deg, transparent 60deg);
+    animation:spin 6s linear infinite;
+    pointer-events:none;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .header-top{
+    display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;
+    position:relative; z-index:1;
+  }
+  .brand{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(24px,4vw,34px);
+    font-weight:700;
+    letter-spacing:-0.02em;
+  }
+  .brand span{color:var(--cyan);}
+  .cursor{display:inline-block; width:0.5ch; background:var(--amber); animation:blink 1s steps(1) infinite; margin-left:2px;}
+  @keyframes blink{50%{opacity:0;}}
+  .subtitle{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--muted); margin-top:6px;
+  }
+  .status-block{
+    text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted);
+  }
+  .status-row{display:flex; align-items:center; gap:8px; justify-content:flex-end; margin-bottom:4px;}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan);}
+  .dot.pulsing{animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:0.35;}}
+  #refresh-btn{
+    margin-top:10px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    background:transparent;
+    color:var(--amber);
+    border:1px solid rgba(255,178,56,0.4);
+    padding:7px 14px;
+    border-radius:20px;
+    cursor:pointer;
+    letter-spacing:0.05em;
+    transition:all 0.15s ease;
+  }
+  #refresh-btn:hover{background:rgba(255,178,56,0.1); border-color:var(--amber);}
+  #refresh-btn:disabled{opacity:0.4; cursor:default;}
+
+  #notif-btn{
+    margin-top:0;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    background:transparent;
+    color:var(--muted);
+    border:1px solid var(--line);
+    padding:7px 14px;
+    border-radius:20px;
+    cursor:pointer;
+    letter-spacing:0.05em;
+    transition:all 0.15s ease;
+  }
+  #notif-btn:hover{border-color:var(--cyan);}
+  #notif-btn.active{color:var(--cyan); border-color:rgba(69,199,224,0.5); background:rgba(69,199,224,0.08);}
+  #notif-btn.denied{color:var(--red); border-color:rgba(255,93,93,0.4);}
+
+  .ios-hint{
+    font-size:10.5px; color:var(--muted-dim); max-width:220px; margin-top:8px;
+    line-height:1.5; text-align:right;
+  }
+
+  /* ---- Grid of category panels ---- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+  }
+  @media(max-width:900px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .panel-head{
+    padding:14px 16px;
+    border-bottom:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--line-soft);
+  }
+  .panel-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600; font-size:14px; letter-spacing:0.02em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel-count{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted-dim);
+  }
+  .panel-body{padding:6px; flex:1; display:flex; flex-direction:column; gap:2px;}
+
+  .item{
+    display:block;
+    padding:12px 10px;
+    border-radius:8px;
+    text-decoration:none;
+    color:inherit;
+    transition:background 0.12s ease;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .item:last-child{border-bottom:none;}
+  .item:hover{background:rgba(69,199,224,0.06);}
+  .item.read{opacity:0.38;}
+  .item.read:hover{opacity:0.55;}
+  .item.read .item-title{text-decoration:line-through; text-decoration-color:var(--muted-dim);}
+  .item-source{
+    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--cyan); margin-bottom:5px;
+  }
+  .item-title{
+    font-size:13.5px; line-height:1.4; font-weight:500; color:var(--text);
+    margin-bottom:5px;
+  }
+  .item-time{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted-dim);
+  }
+
+  .skeleton{padding:12px 10px;}
+  .sk-line{height:10px; border-radius:4px; background:var(--line); margin-bottom:8px; animation:shimmer 1.4s ease-in-out infinite;}
+  .sk-line.w60{width:60%;} .sk-line.w90{width:90%;} .sk-line.w40{width:40%;}
+  @keyframes shimmer{0%,100%{opacity:0.5;} 50%{opacity:1;}}
+
+  .empty-state{
+    padding:24px 14px; text-align:center; color:var(--muted);
+    font-family:'IBM Plex Mono',monospace; font-size:12px; line-height:1.6;
+  }
+  .empty-state .amber{color:var(--amber);}
+
+  footer{
+    margin-top:24px; text-align:center;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted-dim);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="sweep"></div>
+    <div class="header-top">
+      <div>
+        <div class="brand">&lt;Dylan/&gt;<span> // veille</span><span class="cursor">&nbsp;</span></div>
+        <div class="subtitle">signal tech · IA · dev — Cotonou</div>
+      </div>
+      <div class="status-block">
+        <div class="status-row"><span class="dot pulsing" id="live-dot"></span><span id="status-text">connexion aux flux…</span></div>
+        <div id="last-sync">dernière synchro —</div>
+        <div id="next-refresh" style="margin-top:2px;">prochain auto-refresh —</div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px;">
+          <button id="notif-btn">🔔 notifications</button>
+          <button id="refresh-btn">↻ rafraîchir</button>
+        </div>
+        <div class="ios-hint">sur iPhone : ajoute cette page à l'écran d'accueil pour de meilleures notifications</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>flux RSS publics · rafraîchi manuellement · aucune donnée stockée</footer>
+</div>
+
+<script>
+const CATEGORIES = [
+  {
+    id: 'ia',
+    label: 'Intelligence Artificielle',
+    feeds: [
+      { name: 'MIT Tech Review', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed' },
+      { name: 'Actu IA', url: 'https://www.actuia.com/feed/' }
+    ]
+  },
+  {
+    id: 'dev',
+    label: 'Dev & Web',
+    feeds: [
+      { name: 'Hacker News', url: 'https://hnrss.org/frontpage' },
+      { name: 'Journal du Hacker', url: 'https://www.journalduhacker.net/rss' }
+    ]
+  },
+  {
+    id: 'tech',
+    label: 'Tech Général',
+    feeds: [
+      { name: 'TechCrunch', url: 'https://techcrunch.com/feed/' },
+      { name: 'Numerama', url: 'https://www.numerama.com/feed/' }
+    ]
+  }
+];
+
+const ITEMS_PER_CATEGORY = 7;
+
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+  ]);
+}
+
+function normalizeLink(url){
+  try{
+    const u = new URL(url);
+    return (u.origin + u.pathname).replace(/\/$/, '');
+  }catch(e){
+    return url.split('?')[0].split('#')[0].replace(/\/$/, '');
+  }
+}
+
+function timeAgo(dateStr){
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diffMs/60000);
+  if(mins < 1) return 'à l\'instant';
+  if(mins < 60) return `il y a ${mins} min`;
+  const hrs = Math.floor(mins/60);
+  if(hrs < 24) return `il y a ${hrs} h`;
+  const days = Math.floor(hrs/24);
+  return `il y a ${days} j`;
+}
+
+let readLinks = new Set();
+
+async function loadReadLinks(){
+  try{
+    const res = await withTimeout(window.storage.get('read-links', false), 5000);
+    readLinks = res ? new Set(JSON.parse(res.value)) : new Set();
+  }catch(e){
+    readLinks = new Set();
+  }
+}
+
+async function markAsRead(link, el){
+  readLinks.add(link);
+  el.classList.add('read');
+  try{
+    await withTimeout(window.storage.set('read-links', JSON.stringify([...readLinks].slice(-500)), false), 5000);
+  }catch(e){
+    console.warn('Impossible de sauvegarder les articles lus', e.message);
+  }
+}
+
+function renderSkeleton(container){
+  container.innerHTML = '';
+  for(let i=0;i<4;i++){
+    const sk = document.createElement('div');
+    sk.className = 'skeleton';
+    sk.innerHTML = `<div class="sk-line w40"></div><div class="sk-line w90"></div><div class="sk-line w60"></div>`;
+    container.appendChild(sk);
+  }
+}
+
+async function fetchFeed(feed){
+  const proxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feed.url);
+  try{
+    const res = await withTimeout(fetch(proxyUrl), 12000);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if(data.status !== 'ok' || !Array.isArray(data.items)){
+      console.warn('Flux invalide ou limité', feed.name, data.message || data.status);
+      return [];
+    }
+    return data.items.map(it => ({
+      title: it.title,
+      link: it.link,
+      pubDate: it.pubDate,
+      source: feed.name
+    }));
+  }catch(e){
+    console.warn('Échec flux', feed.name, e.message);
+    return [];
+  }
+}
+
+async function loadCategory(cat){
+  const container = document.getElementById('panel-body-' + cat.id);
+  const countEl = document.getElementById('panel-count-' + cat.id);
+  renderSkeleton(container);
+
+  const results = await Promise.all(cat.feeds.map(fetchFeed));
+  let allItems = results.flat();
+  allItems.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+  allItems = allItems.slice(0, ITEMS_PER_CATEGORY);
+
+  container.innerHTML = '';
+  countEl.textContent = allItems.length;
+
+  if(allItems.length === 0){
+    container.innerHTML = `<div class="empty-state">Aucun signal reçu.<br><span class="amber">Les flux peuvent être temporairement indisponibles.</span></div>`;
+    return;
+  }
+
+  allItems.forEach(item => {
+    const linkKey = normalizeLink(item.link);
+    const a = document.createElement('a');
+    a.className = 'item' + (readLinks.has(linkKey) ? ' read' : '');
+    a.href = item.link;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.innerHTML = `
+      <div class="item-source">${item.source}</div>
+      <div class="item-title">${item.title}</div>
+      <div class="item-time">${timeAgo(item.pubDate)}</div>
+    `;
+    a.addEventListener('click', () => markAsRead(linkKey, a));
+    container.appendChild(a);
+  });
+}
+
+function buildGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = `
+      <div class="panel-head">
+        <div class="panel-title">${cat.label}</div>
+        <div class="panel-count" id="panel-count-${cat.id}">…</div>
+      </div>
+      <div class="panel-body" id="panel-body-${cat.id}"></div>
+    `;
+    grid.appendChild(panel);
+  });
+}
+
+const REFRESH_INTERVAL_MS = 60 * 60 * 1000; // 1 heure
+let nextRefreshAt = Date.now() + REFRESH_INTERVAL_MS;
+let lastKnownLinks = null; // null = pas encore chargé depuis le stockage
+
+async function getSeenLinks(){
+  try{
+    const res = await withTimeout(window.storage.get('seen-links', false), 5000);
+    return res ? JSON.parse(res.value) : [];
+  }catch(e){
+    return []; // clé inexistante, timeout, ou premier lancement
+  }
+}
+
+async function saveSeenLinks(links){
+  try{
+    await withTimeout(window.storage.set('seen-links', JSON.stringify(links.slice(0, 400)), false), 5000);
+  }catch(e){
+    console.warn('Impossible de sauvegarder les liens vus', e.message);
+  }
+}
+
+function notifyNewItems(items){
+  if(Notification.permission !== 'granted' || items.length === 0) return;
+  if(items.length === 1){
+    new Notification('Nouveau signal — ' + items[0].source, {
+      body: items[0].title,
+      tag: 'veille-dylan'
+    });
+  } else {
+    new Notification(`${items.length} nouveaux articles`, {
+      body: items.slice(0,3).map(i => '• ' + i.title).join('\n'),
+      tag: 'veille-dylan'
+    });
+  }
+}
+
+async function loadAll(isAutoRefresh){
+  const btn = document.getElementById('refresh-btn');
+  const statusText = document.getElementById('status-text');
+  const dot = document.getElementById('live-dot');
+  btn.disabled = true;
+  statusText.textContent = isAutoRefresh ? 'auto-refresh en cours…' : 'synchronisation en cours…';
+  dot.style.background = 'var(--amber)';
+
+  try{
+    const categoryResults = await Promise.all(CATEGORIES.map(loadCategory));
+    const allCurrentItems = categoryResults.flat();
+    const currentLinks = allCurrentItems.map(i => normalizeLink(i.link));
+
+    const previousLinks = lastKnownLinks !== null ? lastKnownLinks : await getSeenLinks();
+    const isFirstLoad = lastKnownLinks === null && previousLinks.length === 0;
+
+    if(!isFirstLoad){
+      const newItems = allCurrentItems.filter(i => !previousLinks.includes(normalizeLink(i.link)));
+      if(newItems.length > 0) notifyNewItems(newItems);
+    }
+
+    lastKnownLinks = currentLinks;
+    await saveSeenLinks(currentLinks);
+
+    if(allCurrentItems.length === 0){
+      statusText.textContent = 'aucun signal — flux indisponibles';
+      dot.style.background = 'var(--red)';
+    } else {
+      statusText.textContent = 'flux synchronisés';
+      dot.style.background = 'var(--cyan)';
+    }
+  }catch(e){
+    console.warn('Erreur pendant la synchronisation', e.message);
+    statusText.textContent = 'erreur de synchro — nouvel essai au prochain refresh';
+    dot.style.background = 'var(--red)';
+  }finally{
+    document.getElementById('last-sync').textContent =
+      'dernière synchro ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    btn.disabled = false;
+    nextRefreshAt = Date.now() + REFRESH_INTERVAL_MS;
+    updateCountdown();
+  }
+}
+
+function updateCountdown(){
+  const remaining = Math.max(0, nextRefreshAt - Date.now());
+  const mins = Math.floor(remaining / 60000);
+  document.getElementById('next-refresh').textContent =
+    mins > 0 ? `prochain auto-refresh dans ${mins} min` : 'auto-refresh imminent…';
+}
+
+function setupNotifButton(){
+  const notifBtn = document.getElementById('notif-btn');
+
+  function refreshBtnState(){
+    if(!('Notification' in window)){
+      notifBtn.textContent = '🔕 non supporté';
+      notifBtn.disabled = true;
+      return;
+    }
+    if(Notification.permission === 'granted'){
+      notifBtn.textContent = '🔔 notifications actives';
+      notifBtn.className = 'active';
+    } else if(Notification.permission === 'denied'){
+      notifBtn.textContent = '🔕 bloquées (réglages navigateur)';
+      notifBtn.className = 'denied';
+    } else {
+      notifBtn.textContent = '🔔 activer les notifications';
+      notifBtn.className = '';
+    }
+  }
+
+  notifBtn.addEventListener('click', async () => {
+    if(!('Notification' in window)) return;
+    if(Notification.permission === 'default'){
+      await Notification.requestPermission();
+      refreshBtnState();
+      if(Notification.permission === 'granted'){
+        new Notification('Veille activée', { body: 'Tu recevras une alerte à chaque nouveau signal.' });
+      }
+    }
+  });
+
+  refreshBtnState();
+}
+
+document.getElementById('refresh-btn').addEventListener('click', () => loadAll(false));
+
+buildGrid();
+setupNotifButton();
+loadReadLinks().then(() => {
+  loadAll(false).then(() => {
+    setInterval(() => loadAll(true), REFRESH_INTERVAL_MS);
+    setInterval(updateCountdown, 30000);
+    updateCountdown();
+  });
+});
+</script>
+</body>
+</html>
