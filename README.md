@@ -38,7 +38,7 @@ Puis ouvre simplement `index.html` dans ton navigateur — ou héberge-le gratui
 
 1. Va dans **Settings → Pages** de ton repo
 2. Source : branche `main`, dossier `/ (root)`
-3. Ton dashboard sera accessible à `https://gwalabsbj.github.io/veille-dashboard/`
+3. Ton dashboard sera accessible à `https://gwalabsbj.github.io/veilledashboard/`
 
 ## Installer comme une app (iPhone / Android)
 
